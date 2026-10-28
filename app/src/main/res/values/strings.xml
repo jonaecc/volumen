@@ -6,8 +6,6 @@
     <string name="current_volume">Volumen actual: %1$d de %2$d</string>
     <string name="limit_value">%1$d %% (nivel %2$d)</string>
     <string name="accessibility_desc">Servicio del sistema</string>
-    <string name="block_on">Bloqueo de subida: ACTIVO</string>
-    <string name="block_off">Bloqueo de subida: INACTIVO (pulsa OK para activarlo)</string>
     <string name="toggle_on">Limitador ACTIVADO (pulsa OK para desactivar)</string>
     <string name="toggle_off">Limitador DESACTIVADO (pulsa OK para activar)</string>
 </resources>

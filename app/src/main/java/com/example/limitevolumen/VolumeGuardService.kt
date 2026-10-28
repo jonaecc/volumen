@@ -13,11 +13,14 @@ import android.os.Build
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
+import android.os.SystemClock
 import android.provider.Settings
 
 /**
- * Servicio en primer plano que vigila el volumen y lo baja al tope
- * configurado cada vez que alguien lo sube de más.
+ * Servicio en primer plano que vigila el volumen. Si pasa del tope, deja que
+ * suene GRACE_MS milisegundos y luego lo baja de a un nivel cada STEP_MS hasta
+ * llegar al tope. Si alguien lo vuelve a subir, la espera empieza de nuevo.
+ * Los cambios se hacen sin mostrar la barra de volumen del sistema.
  */
 class VolumeGuardService : Service() {
 
@@ -59,12 +62,41 @@ class VolumeGuardService : Service() {
 
     override fun onBind(intent: Intent?): IBinder? = null
 
+    private var overSince = 0L   // desde cuándo está por encima del tope (0 = no lo está)
+    private var lastStepAt = 0L   // última vez que se bajó un nivel
+    private var lastVolume = -1   // último volumen visto, para detectar subidas
+
     private fun enforce() {
-        if (!Prefs.enabled(this)) return
+        if (!Prefs.enabled(this)) {
+            overSince = 0L
+            lastVolume = -1
+            return
+        }
+        val now = SystemClock.elapsedRealtime()
         val streamMax = audio.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
         val limit = streamMax * Prefs.maxPercent(this) / 100
-        if (audio.getStreamVolume(AudioManager.STREAM_MUSIC) > limit) {
-            audio.setStreamVolume(AudioManager.STREAM_MUSIC, limit, 0)
+        val current = audio.getStreamVolume(AudioManager.STREAM_MUSIC)
+
+        if (current <= limit) {
+            overSince = 0L
+            lastVolume = current
+            return
+        }
+
+        // Por encima del tope: empieza la espera, o la reinicia si volvieron a subirlo.
+        if (overSince == 0L || current > lastVolume) {
+            overSince = now
+            lastStepAt = 0L
+        }
+        lastVolume = current
+
+        if (now - overSince < GRACE_MS) return
+
+        // Terminó la espera: baja de a un nivel, sin mostrar la barra (flags = 0).
+        if (now - lastStepAt >= STEP_MS) {
+            audio.setStreamVolume(AudioManager.STREAM_MUSIC, current - 1, 0)
+            lastStepAt = now
+            lastVolume = current - 1
         }
     }
 
@@ -89,5 +121,11 @@ class VolumeGuardService : Service() {
     companion object {
         private const val CHANNEL_ID = "limite_volumen"
         private const val NOTIFICATION_ID = 1
+
+        /** Tiempo que se tolera el volumen por encima del tope antes de empezar a bajarlo. */
+        private const val GRACE_MS = 15_000L
+
+        /** Cada cuánto baja un nivel una vez pasada la espera. */
+        private const val STEP_MS = 1_500L
     }
 }
