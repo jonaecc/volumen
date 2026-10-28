@@ -7,6 +7,7 @@ import android.media.AudioManager
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.provider.Settings
 import android.widget.Button
 import android.widget.TextView
 import androidx.core.content.ContextCompat
@@ -18,6 +19,7 @@ class MainActivity : Activity() {
     private lateinit var limitText: TextView
     private lateinit var currentText: TextView
     private lateinit var toggle: Button
+    private lateinit var block: Button
 
     private val handler = Handler(Looper.getMainLooper())
     private val refresher = object : Runnable {
@@ -35,6 +37,14 @@ class MainActivity : Activity() {
         limitText = findViewById(R.id.limitText)
         currentText = findViewById(R.id.currentText)
         toggle = findViewById(R.id.toggle)
+        block = findViewById(R.id.block)
+        block.setOnClickListener {
+            try {
+                startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+            } catch (e: Exception) {
+                // Algunas TV no tienen esta pantalla; se activa por ADB (ver README).
+            }
+        }
 
         findViewById<Button>(R.id.minus).setOnClickListener { changeLimit(-5) }
         findViewById<Button>(R.id.plus).setOnClickListener { changeLimit(5) }
@@ -82,5 +92,15 @@ class MainActivity : Activity() {
         toggle.text = getString(
             if (Prefs.enabled(this)) R.string.toggle_on else R.string.toggle_off
         )
+        block.text = getString(
+            if (blockServiceEnabled()) R.string.block_on else R.string.block_off
+        )
+    }
+
+    private fun blockServiceEnabled(): Boolean {
+        val enabled = Settings.Secure.getString(
+            contentResolver, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
+        ) ?: return false
+        return enabled.contains("$packageName/")
     }
 }
