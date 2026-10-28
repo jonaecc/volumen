@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Límite de Volumen</string>
+    <string name="notification_text">Vigilando el volumen máximo</string>
+    <string name="limit_label">Volumen máximo permitido</string>
+    <string name="current_volume">Volumen actual: %1$d de %2$d</string>
+    <string name="limit_value">%1$d %% (nivel %2$d)</string>
+    <string name="toggle_on">Limitador ACTIVADO (pulsa OK para desactivar)</string>
+    <string name="toggle_off">Limitador DESACTIVADO (pulsa OK para activar)</string>
+</resources>
