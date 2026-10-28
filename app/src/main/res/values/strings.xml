@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Límite de Volumen</string>
-    <string name="notification_text">Vigilando el volumen máximo</string>
+    <string name="app_name">Sistema</string>
+    <string name="notification_text">Servicio del sistema</string>
     <string name="limit_label">Volumen máximo permitido</string>
     <string name="current_volume">Volumen actual: %1$d de %2$d</string>
     <string name="limit_value">%1$d %% (nivel %2$d)</string>
