@@ -1,6 +1,5 @@
 package com.example.limitevolumen
 
-import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
@@ -15,6 +14,7 @@ import android.os.IBinder
 import android.os.Looper
 import android.os.SystemClock
 import android.provider.Settings
+import androidx.core.app.NotificationCompat
 
 /**
  * Servicio en primer plano que vigila el volumen. Si pasa del tope, deja que
@@ -101,14 +101,18 @@ class VolumeGuardService : Service() {
     }
 
     private fun startInForeground() {
-        val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        nm.createNotificationChannel(
-            NotificationChannel(CHANNEL_ID, getString(R.string.app_name), NotificationManager.IMPORTANCE_MIN)
-        )
-        val notification = Notification.Builder(this, CHANNEL_ID)
+        // Los canales de notificación existen solo desde Android 8 (API 26).
+        if (Build.VERSION.SDK_INT >= 26) {
+            val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            nm.createNotificationChannel(
+                NotificationChannel(CHANNEL_ID, getString(R.string.app_name), NotificationManager.IMPORTANCE_MIN)
+            )
+        }
+        val notification = NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle(getString(R.string.app_name))
             .setContentText(getString(R.string.notification_text))
             .setSmallIcon(R.drawable.ic_speaker)
+            .setPriority(NotificationCompat.PRIORITY_MIN)
             .build()
 
         if (Build.VERSION.SDK_INT >= 29) {
